@@ -1,0 +1,458 @@
+.hallway-gallery {
+  --hallway-panel: #fcf9f4;
+  --hallway-ink: #1d2721;
+  --hallway-button: #1f2b24;
+  --hallway-button-ink: #ffffff;
+  --hallway-gold: #b88b3a;
+  --hallway-crimson: #9e2a2b;
+  --hallway-pine: #1f3b2c;
+  --hallway-panel-width: clamp(300px, 32%, 400px);
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.hallway-gallery__canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hallway-gallery.is-dragging .hallway-gallery__canvas {
+  cursor: grabbing;
+}
+
+.hallway-gallery__video-source {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0.001;
+  pointer-events: none;
+}
+
+/* One button per artwork for keyboards and screen readers; it appears when focused. */
+.hallway-gallery__list {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hallway-gallery__item {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: max-content;
+  max-width: 60vw;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 19, 18, 0.88);
+  color: #ffffff;
+  font: 500 14px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.hallway-gallery__item:focus-visible {
+  clip-path: none;
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.hallway-gallery__tip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 12px 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 139, 58, 0.35);
+  background: rgba(24, 34, 28, 0.92);
+  color: #fcf9f4;
+  font: 500 13px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.hallway-gallery__tip.is-visible {
+  opacity: 1;
+}
+
+.hallway-gallery__tip-action {
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  opacity: 0.75;
+}
+
+/* The info panel beside a chosen memory. */
+.hallway-gallery__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  width: var(--hallway-panel-width);
+  background: var(--hallway-panel);
+  color: var(--hallway-ink);
+  border-left: 1px solid rgba(184, 139, 58, 0.28);
+  box-shadow: -18px 0 50px rgba(20, 19, 18, 0.1);
+  transform: translateX(104%);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  outline: none;
+}
+
+.hallway-gallery.is-open .hallway-gallery__panel {
+  transform: none;
+}
+
+.hallway-gallery__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 4px 28px;
+}
+
+.hallway-gallery__counter {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.58;
+}
+
+.hallway-gallery__bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hallway-gallery__icon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hallway-gallery__icon:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.hallway-gallery__icon:focus-visible,
+.hallway-gallery__video-btn:focus-visible,
+.hallway-gallery__video-range:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.hallway-gallery__icon::before,
+.hallway-gallery__icon::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border: solid currentColor;
+  border-width: 0 1.8px 1.8px 0;
+}
+
+.hallway-gallery__icon--previous::before {
+  transform: translate(-30%, -50%) rotate(135deg);
+}
+
+.hallway-gallery__icon--next::before {
+  transform: translate(-70%, -50%) rotate(-45deg);
+}
+
+.hallway-gallery__icon--previous::after,
+.hallway-gallery__icon--next::after {
+  display: none;
+}
+
+.hallway-gallery__icon--close::before,
+.hallway-gallery__icon--close::after {
+  width: 16px;
+  height: 0;
+  border-width: 1.8px 0 0;
+}
+
+.hallway-gallery__icon--close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.hallway-gallery__icon--close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.hallway-gallery__scroller {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px 28px 32px;
+}
+
+.hallway-gallery__content {
+  margin-top: auto;
+  margin-bottom: auto;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.hallway-gallery__content :is(h1, h2, h3) {
+  margin: 0 0 6px;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  font-size: clamp(24px, 2.3vw, 32px);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.hallway-gallery__content p {
+  margin: 0 0 10px;
+}
+
+.hallway-gallery__content [data-artwork-meta] {
+  font-size: 14px;
+  opacity: 0.72;
+}
+
+.hallway-gallery__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(184, 139, 58, 0.35);
+  background: rgba(31, 59, 44, 0.08);
+  color: var(--hallway-pine);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hallway-gallery__badge--video {
+  background: rgba(158, 42, 43, 0.1);
+  border-color: rgba(158, 42, 43, 0.3);
+  color: var(--hallway-crimson);
+}
+
+.hallway-gallery__video-controls {
+  margin-top: 18px;
+  margin-bottom: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgba(184, 139, 58, 0.24);
+}
+
+.hallway-gallery__video-controls[hidden] {
+  display: none;
+}
+
+.hallway-gallery__video-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.hallway-gallery__video-row[hidden],
+.hallway-gallery__video-scrub-row[hidden] {
+  display: none;
+}
+
+.hallway-gallery__video-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  background: transparent;
+  color: inherit;
+  font: 600 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+
+.hallway-gallery__video-btn--primary {
+  background: var(--hallway-pine);
+  border-color: var(--hallway-pine);
+  color: #ffffff;
+}
+
+.hallway-gallery__video-btn:active {
+  transform: scale(0.97);
+}
+
+.hallway-gallery__video-scrub-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hallway-gallery__video-range {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  accent-color: var(--hallway-crimson);
+  cursor: pointer;
+}
+
+.hallway-gallery__video-time {
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.72;
+  min-width: 74px;
+  text-align: right;
+}
+
+.hallway-gallery__flat-video {
+  width: 100%;
+  max-height: 220px;
+  border-radius: 12px;
+  background: #141312;
+}
+
+.hallway-gallery__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Narrow hosts (phones): compact bottom sheet under the artwork. */
+.hallway-gallery.is-narrow .hallway-gallery__panel {
+  top: auto;
+  left: 0;
+  width: auto;
+  height: var(--hallway-sheet-height, 28%);
+  min-height: 156px;
+  max-height: 55%;
+  border-left: 0;
+  border-top: 1px solid rgba(184, 139, 58, 0.34);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -16px 46px rgba(20, 19, 18, 0.14);
+  transform: translateY(104%);
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__panel::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  transform: translateX(-50%);
+}
+
+.hallway-gallery.is-narrow.is-open .hallway-gallery__panel {
+  transform: none;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__bar {
+  padding: 12px 10px 0 20px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__icon {
+  width: 40px;
+  height: 40px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__scroller {
+  padding: 0 20px max(14px, env(safe-area-inset-bottom));
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__content {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__badge {
+  margin-bottom: 6px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__content :is(h1, h2, h3) {
+  margin-bottom: 4px;
+  font-size: 21px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__content p {
+  margin-bottom: 4px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__video-controls {
+  margin-top: 8px;
+  margin-bottom: 0;
+  padding-top: 10px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__video-row {
+  margin-bottom: 8px;
+}
+
+.hallway-gallery.is-narrow .hallway-gallery__video-btn {
+  min-height: 36px;
+  padding: 6px 14px;
+}
+
+/* Without WebGL the memories are listed as buttons that open the same panel. */
+.hallway-gallery.is-flat .hallway-gallery__list {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 80px 24px 24px;
+}
+
+.hallway-gallery.is-flat .hallway-gallery__item {
+  position: static;
+  clip-path: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hallway-gallery__panel,
+  .hallway-gallery__tip,
+  .hallway-gallery__video-btn {
+    transition: none;
+  }
+}

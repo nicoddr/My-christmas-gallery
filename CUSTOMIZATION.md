@@ -1,0 +1,14 @@
+# Customization
+
+`src/configuration.js` owns defaults, normalization and editor descriptors. `normalize(values)` returns a complete portable configuration: unknown properties are dropped and numbers are clamped to their ranges and steps.
+
+- **Images:** number of artworks 4–16 (default 12). Each artwork has a library image (`mediaIds`, a series of sixteen screen prints), an optional address of your own (`imageUrls`), a description (`imageAlt`) and a crop position (`focalX` and `focalY`, default 50 %). `imageFit` is `natural` (default: every artwork keeps its own proportions) or `fill` (every artwork is cropped to the artwork width and height around its crop position).
+- **Size & layout:** artwork width 40–200 cm (default 90) and height 40–200 cm (default 110), frame included; artwork corners 0–20 cm (default 0); space between artworks 40–400 cm (default 150), measured along the same wall; hanging height 110–220 cm (default 155) to the middle of each artwork; `walls` is `both` (default, alternating outer and inner wall) or `outer`; hallway bend 0–100 % (default 55), where 0 is a long, gentle curve; hallway width 300–800 cm (default 460).
+- **Colors:** walls (default `#f3f1ec`), floor (default `#d8d4cc`), frame (default `#22201d`), white border and mat (default `#fbfaf6`), panel (default `#ffffff`), panel text (default `#1a1917`) and the Add to cart button (default `#1a1917`; its text turns dark or light to stay readable).
+- **Artworks:** `display` is how every artwork hangs: `canvas`, `white-canvas`, `framed` (default) or `float`. Frame width 1–10 cm (default 3.5) for framed and float-framed artworks; white border 0–20 cm (default 7), the border of a white canvas or the mat inside a frame; canvas depth 1.5–8 cm (default 4) for canvas, white canvas and float frame. `wallLabels` (default on) shows each artwork's title and second line on a label under it. Gallery lights 0–100 % (default 70) sets the arched pools of light around each artwork, where 0 lights the hallway evenly; light warmth 0–100 % (default 35) runs from cool daylight to warm tungsten.
+- **Buying:** `offerCanvas`, `offerWhiteCanvas`, `offerFramed` and `offerFloat` (all default on) choose the finishes a visitor can pick in the panel. The finish on the wall is always offered.
+- **Motion:** walking speed 0.25–3× (default 1), how far each scroll or drag walks; stroll when idle 0–100 % (default 50, about 0.8 m a second), where 0 stays put and the stroll holds still while the pointer is over an artwork; look around with the pointer 0–100 % (default 40); `wheel` (default on) lets scrolling over the hallway walk it; off leaves the wheel to the page.
+
+The panel's currency and words are set in code (see `README.md`), not in this configuration. Each artwork's words and price come from your page.
+
+Every setting is shared by the live preview, saved settings and the Vanilla, React and Next.js downloads.

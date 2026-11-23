@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f2b24">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Christmas Gallery</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='15' fill='%231f2b24'/><path d='M16 5l2.6 7.4L26 15l-7.4 2.6L16 25l-2.6-7.4L6 15l7.4-2.6z' fill='%23e8c476'/></svg>">
+  <link rel="stylesheet" href="./src/styles.css">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      background: #1f2b24;
+      color: #1d2721;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    #hallway-stage {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background: #f4efe8;
+    }
+
+    #hallway {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Floating frosted Christmas header */
+    .gallery-header {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    #hallway-stage.is-panel-open .gallery-header {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-10px);
+    }
+
+    #hallway-stage.is-panel-open .gallery-header * {
+      pointer-events: none;
+    }
+
+    .gallery-pill {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(184, 139, 58, 0.36);
+      background: rgba(252, 249, 244, 0.84);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #1d2721;
+      font: 600 13px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+      box-shadow: 0 8px 24px rgba(18, 24, 20, 0.12);
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .gallery-brand {
+      font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    .gallery-brand svg {
+      width: 15px;
+      height: 15px;
+      color: #b88b3a;
+      flex-shrink: 0;
+    }
+
+    .gallery-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .gallery-btn {
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.12s ease, background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .gallery-btn:active {
+      transform: scale(0.96);
+    }
+
+    .gallery-btn[aria-pressed="true"] {
+      background: rgba(31, 59, 44, 0.9);
+      border-color: rgba(232, 196, 118, 0.55);
+      color: #fcf9f4;
+    }
+
+    .gallery-btn--video {
+      border-color: rgba(158, 42, 43, 0.34);
+    }
+
+    .gallery-btn--video .video-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #9e2a2b;
+      flex-shrink: 0;
+    }
+
+    /* Floating mobile-first bottom navigation bar */
+    .gallery-nav {
+      position: fixed;
+      left: 50%;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      z-index: 10;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      max-width: calc(100vw - 24px);
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(184, 139, 58, 0.38);
+      background: rgba(252, 249, 244, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(18, 24, 20, 0.16);
+      color: #1d2721;
+      transition: opacity 0.28s ease, transform 0.28s ease;
+    }
+
+    #hallway-stage.is-panel-open .gallery-nav {
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 18px);
+    }
+
+    .gallery-nav__icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: inherit;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      touch-action: manipulation;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .gallery-nav__icon:hover {
+      background: rgba(29, 39, 33, 0.08);
+    }
+
+    .gallery-nav__current {
+      min-height: 40px;
+      max-width: 210px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(31, 59, 44, 0.08);
+      color: inherit;
+      font: 600 12.5px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Subtle first-visit gesture hint */
+    .gallery-hint {
+      position: fixed;
+      left: 50%;
+      bottom: calc(max(14px, env(safe-area-inset-bottom)) + 60px);
+      z-index: 9;
+      transform: translateX(-50%);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(24, 34, 28, 0.78);
+      color: #fcf9f4;
+      font: 500 12px/1.2 system-ui, -apple-system, "Segoe UI", sans-serif;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+
+    .gallery-hint.is-hidden {
+      opacity: 0;
+    }
+
+    /* Loading overlay */
+    .gallery-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 24px;
+      background: radial-gradient(circle at 50% 35%, #fcf9f4 0%, #efe7db 100%);
+      color: #1d2721;
+      text-align: center;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .gallery-loader.is-ready {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .gallery-loader__star {
+      width: 34px;
+      height: 34px;
+      color: #b88b3a;
+    }
+
+    .gallery-loader__title {
+      margin: 0;
+      font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .gallery-loader__sub {
+      margin: 0;
+      font-size: 13.5px;
+      opacity: 0.7;
+      max-width: 320px;
+      line-height: 1.45;
+    }
+
+    .gallery-loader__bar {
+      width: min(220px, 70vw);
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(29, 39, 33, 0.12);
+      overflow: hidden;
+    }
+
+    .gallery-loader__fill {
+      width: 0%;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1f3b2c, #b88b3a);
+      transition: width 0.18s ease;
+    }
+
+    .gallery-loader__count {
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 420px) {
+      .gallery-pill {
+        min-height: 35px;
+        padding: 6px 11px;
+        font-size: 12px;
+        gap: 5px;
+      }
+
+      .gallery-brand {
+        font-size: 13px;
+      }
+
+      .gallery-nav__current {
+        max-width: 165px;
+        font-size: 12px;
+        padding: 0 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="hallway-stage">
+    <header class="gallery-header">
+      <div class="gallery-pill gallery-brand">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/>
+        </svg>
+        <span>Christmas Gallery</span>
+      </div>
+      <div class="gallery-actions">
+        <button id="toggle-christmas" class="gallery-pill gallery-btn" type="button" aria-pressed="true" aria-label="Toggle Christmas theme">
+          <span aria-hidden="true">&#10052;</span>
+          <span>Snow</span>
+        </button>
+        <button id="jump-video" class="gallery-pill gallery-btn gallery-btn--video" type="button" aria-label="Jump to video">
+          <span class="video-dot" aria-hidden="true"></span>
+          <span>Video</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="hallway">
+      <!-- 1. IMG-20261005-WA0021.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 5, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Monday, October 5, 2026</p>
+      </article>
+
+      <!-- 2. IMG-20261006-WA0014.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 6, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Tuesday, October 6, 2026</p>
+      </article>
+
+      <!-- 3. PXL_20261009_183338195.MP.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 9, 2026</h2>
+        <p data-wall-meta hidden>Photo · 9:33 PM</p>
+        <p data-artwork-meta>Friday, October 9, 2026 · 9:33 PM</p>
+      </article>
+
+      <!-- 4. PXL_20261010_165628840.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 10, 2026</h2>
+        <p data-wall-meta hidden>Photo · 7:56 PM</p>
+        <p data-artwork-meta>Saturday, October 10, 2026 · 7:56 PM</p>
+      </article>
+
+      <!-- 5. CAF_0116.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 11, 2026</h2>
+        <p data-wall-meta hidden>Photo · 11:19 AM</p>
+        <p data-artwork-meta>Sunday, October 11, 2026 · 11:19 AM</p>
+      </article>
+
+      <!-- 6. IMG-20261011-WA0061.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 11, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Sunday, October 11, 2026</p>
+      </article>
+
+      <!-- 7. IMG-20261024-WA0009.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 24, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Saturday, October 24, 2026</p>
+      </article>
+
+      <!-- 8. IMG-20261024-WA0017.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>October 24, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Saturday, October 24, 2026</p>
+      </article>
+
+      <!-- 9. PXL_20261106_143830152.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 6, 2026</h2>
+        <p data-wall-meta hidden>Photo · 4:38 PM</p>
+        <p data-artwork-meta>Friday, November 6, 2026 · 4:38 PM</p>
+      </article>
+
+      <!-- 10. IMG-20261106-WA0008.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 6, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Friday, November 6, 2026</p>
+      </article>
+
+      <!-- 11. PXL_20261106_215205561.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 6, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Friday, November 6, 2026</p>
+      </article>
+
+      <!-- 12. ♥ (1).png (no EXIF date; placed alongside November 2026 memories) -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>November 2026</p>
+      </article>
+
+      <!-- 13. Nico&Eliza.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 8, 2026</h2>
+        <p data-wall-meta hidden>Photo · 4:13 PM</p>
+        <p data-artwork-meta>Sunday, November 8, 2026 · 4:13 PM</p>
+      </article>
+
+      <!-- 14. PXL_20261109_144512739.MP.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 9, 2026</h2>
+        <p data-wall-meta hidden>Photo · 4:45 PM</p>
+        <p data-artwork-meta>Monday, November 9, 2026 · 4:45 PM</p>
+      </article>
+
+      <!-- 15. PXL_20261121_090442370.MP.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 21, 2026</h2>
+        <p data-wall-meta hidden>Photo · 11:04 AM</p>
+        <p data-artwork-meta>Saturday, November 21, 2026 · 11:04 AM</p>
+      </article>
+
+      <!-- 16. PXL_20261121_210217901.MP.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 21, 2026</h2>
+        <p data-wall-meta hidden>Photo · 11:02 PM</p>
+        <p data-artwork-meta>Saturday, November 21, 2026 · 11:02 PM</p>
+      </article>
+
+      <!-- 17. IMG-20261122-WA0249.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 22, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Sunday, November 22, 2026</p>
+      </article>
+
+      <!-- 18. IMG-20261122-WA0276.jpg -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge">Photo</span>
+        <h2>November 22, 2026</h2>
+        <p data-wall-meta hidden>Photo</p>
+        <p data-artwork-meta>Sunday, November 22, 2026</p>
+      </article>
+
+      <!-- 19. VID-20261004-WA0006.mp4 (placed last, replacing the final artwork) -->
+      <article data-artwork>
+        <span class="hallway-gallery__badge hallway-gallery__badge--video">Video · 0:45</span>
+        <h2>October 4, 2026</h2>
+        <p data-wall-meta hidden>Video · 0:45</p>
+        <p data-artwork-meta>Sunday, October 4, 2026 · Video (0:45)</p>
+      </article>
+    </div>
+
+    <div id="gallery-hint" class="gallery-hint" aria-hidden="true">Swipe to walk · Tap a frame</div>
+
+    <nav class="gallery-nav" aria-label="Gallery navigation">
+      <button id="nav-prev" class="gallery-nav__icon" type="button" aria-label="Previous memory">&#8249;</button>
+      <button id="nav-current" class="gallery-nav__current" type="button" aria-label="Open current memory">October 5, 2026 · 1/19</button>
+      <button id="nav-next" class="gallery-nav__icon" type="button" aria-label="Next memory">&#8250;</button>
+      <button id="nav-stroll" class="gallery-nav__icon" type="button" aria-label="Pause stroll" aria-pressed="false">&#10074;&#10074;</button>
+    </nav>
+
+    <div id="gallery-loader" class="gallery-loader" role="status" aria-live="polite">
+      <svg class="gallery-loader__star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/>
+      </svg>
+      <h1 class="gallery-loader__title">Christmas Gallery</h1>
+      <p id="loader-status" class="gallery-loader__sub">Preparing gallery…</p>
+      <div class="gallery-loader__bar" aria-hidden="true">
+        <div id="loader-fill" class="gallery-loader__fill"></div>
+      </div>
+      <span id="loader-count" class="gallery-loader__count">0 / 19</span>
+    </div>
+  </div>
+
+  <script type="module">
+    import { mountHallwayGallery } from "./src/hallway-gallery.js";
+    import options from "./hallway-gallery.options.js";
+
+    const stage = document.getElementById("hallway-stage");
+    const host = document.getElementById("hallway");
+    const loader = document.getElementById("gallery-loader");
+    const loaderStatus = document.getElementById("loader-status");
+    const loaderFill = document.getElementById("loader-fill");
+    const loaderCount = document.getElementById("loader-count");
+    const hint = document.getElementById("gallery-hint");
+
+    const toggleChristmas = document.getElementById("toggle-christmas");
+    const jumpVideo = document.getElementById("jump-video");
+    const navPrev = document.getElementById("nav-prev");
+    const navNext = document.getElementById("nav-next");
+    const navCurrent = document.getElementById("nav-current");
+    const navStroll = document.getElementById("nav-stroll");
+
+    const titles = [...host.querySelectorAll("[data-artwork] h2")].map(el => el.textContent.trim());
+    let currentAhead = 0;
+    let strollPaused = false;
+    let christmasOn = true;
+
+    function updateNavLabel(index) {
+      currentAhead = index;
+      const title = titles[index] || `Memory ${index + 1}`;
+      navCurrent.textContent = `${title} · ${index + 1}/${titles.length}`;
+    }
+
+    function dismissHint() {
+      hint.classList.add("is-hidden");
+    }
+
+    host.addEventListener("hallway-gallery:progress", event => {
+      const { loaded, total } = event.detail;
+      const pct = total > 0 ? Math.round((loaded / total) * 100) : 0;
+      loaderFill.style.width = `${pct}%`;
+      loaderCount.textContent = `${loaded} / ${total}`;
+    });
+
+    host.addEventListener("hallway-gallery:change", event => {
+      updateNavLabel(event.detail.index);
+    });
+
+    host.addEventListener("hallway-gallery:open", event => {
+      stage.classList.add("is-panel-open");
+      updateNavLabel(event.detail.index);
+      dismissHint();
+    });
+
+    host.addEventListener("hallway-gallery:close", () => {
+      stage.classList.remove("is-panel-open");
+    });
+
+    const gallery = mountHallwayGallery(host, options);
+    updateNavLabel(0);
+
+    navPrev.addEventListener("click", () => {
+      dismissHint();
+      gallery.previous();
+    });
+
+    navNext.addEventListener("click", () => {
+      dismissHint();
+      gallery.next();
+    });
+
+    navCurrent.addEventListener("click", () => {
+      dismissHint();
+      gallery.open(currentAhead);
+    });
+
+    navStroll.addEventListener("click", () => {
+      dismissHint();
+      strollPaused = !strollPaused;
+      gallery.setAutoWalk(strollPaused ? 0 : options.autoWalk);
+      navStroll.setAttribute("aria-pressed", String(strollPaused));
+      navStroll.setAttribute("aria-label", strollPaused ? "Resume stroll" : "Pause stroll");
+      navStroll.innerHTML = strollPaused ? "&#9654;" : "&#10074;&#10074;";
+    });
+
+    toggleChristmas.addEventListener("click", () => {
+      christmasOn = !christmasOn;
+      gallery.setChristmas(christmasOn);
+      toggleChristmas.setAttribute("aria-pressed", String(christmasOn));
+    });
+
+    jumpVideo.addEventListener("click", () => {
+      dismissHint();
+      gallery.open(titles.length - 1);
+    });
+
+    host.addEventListener("pointerdown", dismissHint, { once: true, passive: true });
+    host.addEventListener("wheel", dismissHint, { once: true, passive: true });
+    window.setTimeout(dismissHint, 5500);
+
+    gallery.ready
+      .then(() => {
+        loaderFill.style.width = "100%";
+        loaderCount.textContent = `${titles.length} / ${titles.length}`;
+        window.setTimeout(() => loader.classList.add("is-ready"), 180);
+      })
+      .catch(() => {
+        loaderStatus.textContent = "Could not load the gallery media. Open this page via GitHub Pages or a local web server (http://) rather than file://.";
+      });
+  </script>
+</body>
+</html>
